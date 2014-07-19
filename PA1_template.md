@@ -6,7 +6,8 @@
 In the first step data are loaded. It is checked whether the file in question already exists, and if not is produced.
 The file is read in directly from its net location, unzipped and and read in.
 The object created is called "data"
-```{r}
+
+```r
 if (!file.exists("activity.csv")) {
     Url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
     setInternet2(use = TRUE)
@@ -19,12 +20,21 @@ if (!file.exists("activity.csv")) {
 
 Before preprocessiong the data, the structure of the file is investigated.Then the data for the next two steps of the assignement are created. 
 
-```{r dnames, echo=TRUE}
+
+```r
 str(data)
 ```
 
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+```
 
-```{r dprep, echo=TRUE}
+
+
+```r
 stepsDay <- aggregate(data$steps,list(data$date),sum)
 names(stepsDay)<-c("day","meanSteps")
 
@@ -35,28 +45,33 @@ names(stepsInterval)<-c("interval","aveSteps")
 ## What is mean total number of steps taken per day?  
 A histogram of the total number of steps taken each day, missing values are ignored, is below:
 
-```{r hist1, fig.height=4, fig.width=4}
+
+```r
 hist(stepsDay$meanSteps, 
      main="Mean Steps",
      xlab="Mean Steps")
 ```
 
+![plot of chunk hist1](figure/hist1.png) 
+
 Mean and median total number of steps taken per day, missing values ignored. 
 
-```{r msteps, echo=TRUE}
+
+```r
 mean.steps.day<-mean(stepsDay$meanSteps,na.rm = TRUE)
 median.steps.day<-median(stepsDay$meanSteps,na.rm = TRUE)
 ```
 
-The mean total number of steps taken per day are `r mean.steps.day`.
-The median total number of steps taken per day are `r median.steps.day`
+The mean total number of steps taken per day are 1.0766 &times; 10<sup>4</sup>.
+The median total number of steps taken per day are 10765
 
 
 
 ## What is the average daily activity pattern?
 
 Line graph of the daily activity. 
-```{r tseries, echo=TRUE, fig.height=4, fig.width=4}
+
+```r
 plot(stepsInterval$interval,
      stepsInterval$aveSteps,
      type="l",
@@ -64,13 +79,16 @@ plot(stepsInterval$interval,
      ylab="Steps")
 ```
 
+![plot of chunk tseries](figure/tseries.png) 
+
 Finding the interval with the highest number of steps on avarage in a day.  
 
-```{r minterv, echo=TRUE}
+
+```r
 maxInterval<-stepsInterval$interval[max(stepsInterval$aveSteps)]
 ```
 
-The 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps is interval `r maxInterval`
+The 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps is interval 1705
 
 ## Imputing missing values  
 
@@ -78,17 +96,19 @@ Note that there are a number of days/intervals where there are missing values (c
 
 ###  Calculate the total number of missing values in the dataset 
 
-```{r, echo=TRUE}
+
+```r
 NAval<-sum(is.na(data$steps))
 #NAval<-2304
 ```
-The total number of rows with NAs is: `r NAval`.
+The total number of rows with NAs is: 2304.
 
 ### Filling in the missing values in the dataset and creating new dataset that with the missing data filled in  
 
 Filling strategy: Replace each NA with mean steps per interval and recalculate data
 
-```{r NAfill, echo=TRUE}
+
+```r
 #library(knitr)
 ndata<-data #Create new dataset
 Len<-length(unique(data$interval))#intervals in a day
@@ -112,24 +132,34 @@ diffmedian<-nmedian.steps.day-median.steps.day
 
 ### A new histogram    
 
-```{r hist2, fig.height=3, fig.width=3}
+
+```r
 hist(nstepsDay$meanSteps, 
      main="Mean Steps",
      xlab="Mean Steps")
 ```
 
-With NAs in the data set, the mean number of steps were `r mean.steps.day`, with NAs replaced with the mean number of steps, the mean has increased by `r diffmean` to `r nmean.steps.day`. With NAs in the data set, the median number of steps were `r median.steps.day`, with NAs replaced with the mean number of steps, the mean has increased by `r diffmedian` to `r nmedian.steps.day`.
+![plot of chunk hist2](figure/hist2.png) 
+
+With NAs in the data set, the mean number of steps were 1.0766 &times; 10<sup>4</sup>, with NAs replaced with the mean number of steps, the mean has increased by 0 to 1.0766 &times; 10<sup>4</sup>. With NAs in the data set, the median number of steps were 10765, with NAs replaced with the mean number of steps, the mean has increased by 1.1887 to 1.0766 &times; 10<sup>4</sup>.
 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r,echo=TRUE}
+
+```r
 Dates<-as.Date(as.character(ndata$date),format="%Y-%m-%d")
 WD<-weekdays(Dates, abbreviate=TRUE)
 
 unique(WD)
+```
 
+```
+## [1] "Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"
+```
+
+```r
 WD[WD=="Mon"]<-"Weekday"
 WD[WD=="Tue"]<-"Weekday"
 WD[WD=="Wed"]<-"Weekday"
@@ -154,14 +184,16 @@ names(nstepsInterval.we)<-c("interval","aveSteps","WD")
 
 ##combining data for plot below
 nstepsInterval.wde<-rbind(nstepsInterval.wd,nstepsInterval.we)
-
 ```
 
 
 ### Panel plot average steps per interval time series
 
-```{r panel,echo=TRUE}
+
+```r
 xyplot(aveSteps ~ interval | WD, data = nstepsInterval.wde, layout = c(1, 2), type="l", ylab="steps")
 ```
+
+![plot of chunk panel](figure/panel.png) 
 
 It appears that activity pattern vary between weekends and weekdays. Whereas  activity seems to be more equally distributed on weekends, main activity during the week seems to be in the morning hours.
